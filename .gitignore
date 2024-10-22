@@ -1,0 +1,3 @@
+*.out
+__pycache__/
+model_arch/__pycache__/
