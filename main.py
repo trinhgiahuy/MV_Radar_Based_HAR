@@ -7,6 +7,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR
 from model_arch.ResNet18SeparableSingleView import ResNet18SeparableSingleView
 from model_arch.ResNet18SeparableSingleViewAttention import ResNet18SeparableSingleViewAttention
 from model_arch.ViT16Custom import ViT16Custom
+from model_arch.SingleViewViT import SingleViewViT
 
 MODELS_MAP={
     ResNet18SeparableSingleView: "ResNet18SeparableSingleView",
@@ -18,7 +19,7 @@ batch_size = 64
 num_epochs = 200
 # learning_rate = 1e-3
 # Small learning rate for vision Transformer
-learning_rate = 1e-5
+learning_rate = 1e-4
 lr_str = "{:.0e}".format(learning_rate)
 device = torch.device("cuda")
 print(device)
@@ -27,7 +28,8 @@ print(device)
 criterion = nn.CrossEntropyLoss()
 # model = ResNet18SeparableSingleView(name='single_view_experiment', num_classes=9).to(device)
 # model = ResNet18SeparableSingleViewAttention(name='single_view_experiment', num_classes=9).to(device)
-model = ViT16Custom(name='ViT16Custom_h12_d12', num_classes=9).to(device)
+# model = ViT16Custom(name='ViT16Custom_h12_d12', num_classes=9).to(device)
+model = SingleViewViT(name='SingleViewViT', num_classes=9).to(device)
 
 
 # model_str = MODELS_MAP[model]
@@ -45,9 +47,9 @@ else:
 # Gradient Clipping (ViT)
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
 
-# scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 # scheduler = CosineAnnealingLR(optimizer, T_max=50)
-scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
+# scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=10, T_mult=2)
 if isinstance(scheduler,torch.optim.lr_scheduler.CosineAnnealingWarmRestarts):
     print("STUFF")
@@ -76,7 +78,7 @@ def initialize_weights(model):
 model.apply(initialize_weights)
 
 data_dir = r"/mnt/datasets_nfs/h3trinh/"
-save_dir = f"/mnt/slurm_nfs/h3trinh/RA/{model_str}/scheduler_{scheduler_str}/lr_{lr_str[-1]}_b{batch_size}_{optimizer_str}"
+save_dir = f"/mnt/slurm_nfs/h3trinh/MV_Radar_Based_HAR/{model_str}/scheduler_{scheduler_str}/lr_{lr_str[-1]}_b{batch_size}_{optimizer_str}"
 print("Creating train loader..")
 train_loader = create_data_loader(data_dir, batch_size=batch_size, chunk_prefix="train", total_chunks=10)
 print("Finish creating train loader")
